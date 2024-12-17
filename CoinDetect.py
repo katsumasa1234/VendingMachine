@@ -1,5 +1,16 @@
+import argparse
+import math
 import numpy as np
+import statistics
+
 import cv2
+
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("Y", "U", "Y", "V"))
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+cap.set(cv2.CAP_PROP_FPS, 30)
+
 
 def binalize(src_img):
     gray = cv2.cvtColor(src_img, cv2.COLOR_BGR2GRAY)
@@ -48,14 +59,14 @@ def find_hole_contours(contours, hierarchy):
             if info[3] == cnt_idx:
                 hole_area = cv2.contourArea(contours[hier_idx])
                 parent_area = cv2.contourArea(cnt)
-                if hole_area < (parent_area * 0.03128) or hole_area > (parent_area * 0.05665):
+                if hole_area < (parent_area * 0.01) or hole_area > (parent_area * 0.15):
                     continue
                 (center_x, center_y), radius = cv2.minEnclosingCircle(contours[hier_idx])
                 circle_area = int(radius * radius * np.pi)
                 if circle_area <= 0:
                     continue
                 area_diff = circle_area / hole_area
-                if 0.8 > area_diff or area_diff > 1.3:
+                if 0.2 > area_diff or area_diff > 1.3:
                     continue
                 hole_cnt.append(contours[hier_idx])
 
@@ -129,24 +140,27 @@ def determine_coin_type(coins_color, hole_features):
 
         guess_type = 0
         if hf is True:
-            if (b_ave / r_ave) < 0.6 and (b_ave / r_ave) > 0.4:
+            if (b_ave / r_ave) < 0.7 and (b_ave / r_ave) > 0.3:
                 guess_type = 5
             else:
                 guess_type = 50
         else:
-            if (b_ave / r_ave) < 0.6 and (b_ave / r_ave) > 0.4:
+            if (b_ave / r_ave) < 0.8 and (b_ave / r_ave) > 0.2:
                 guess_type = 10
-            elif (rb_ave_diff + rg_ave_diff + gb_ave_diff) < 50:
+            elif (rb_ave_diff + rg_ave_diff + gb_ave_diff) < 22:
                 guess_type = 1
-            elif (rb_mode_diff + rg_mode_diff + gb_mode_diff) < 135 or (rg_mode_diff - gb_mode_diff) > 70:
-                guess_type = 100
             else:
-                guess_type = 500
+                guess_type = 100
 
         coin_type.append(guess_type)
 
     return coin_type
 
+def coin_total(coin_type):
+    total = 0
+    for coin in coin_type:
+        total = total + coin
+    return total
 
 def render(dst_img, coin_contours, hole_contours, coin_type):
     for h in hole_contours:
@@ -154,8 +168,9 @@ def render(dst_img, coin_contours, hole_contours, coin_type):
 
     for (cnt, type) in zip(coin_contours, coin_type):
         cv2.drawContours(dst_img, [cnt], -1, (0, 0, 255), 6)
-        cv2.putText(dst_img, str(type), _get_moments(cnt), cv2.FONT_HERSHEY_PLAIN, 8, (0, 0, 255), 8, cv2.LINE_AA)
-
+        cv2.putText(dst_img, str(type), _get_moments(cnt), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2, cv2.LINE_AA)
+        total = coin_total(coin_type)
+        cv2.putText(dst_img, str(total), (10,25), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2, cv2.LINE_AA)
 
 def parse_args() -> tuple:
     parser = argparse.ArgumentParser()
@@ -167,28 +182,37 @@ def parse_args() -> tuple:
 
 
 def main() -> None:
-    (in_img, out_img) = parse_args()
+    #(in_img, out_img) = parse_args()
+    in_img = "capture.png"
+    out_img = "output.png"
     src_img = cv2.imread(in_img)
     if src_img is None:
         return
     height, width = src_img.shape[:2]
-    dst_img = src_img.copy()
-    bin_img = binalize(src_img)
+    while(True):
+        ret, src_img = cap.read()
+        if not ret:
+            continue
+        dst_img = src_img.copy()
+        bin_img = binalize(src_img)
 
-    max_area = math.ceil((width * height) / 5)
-    min_area = math.ceil((width * height) / 100)
-    bin_img = filter_object(bin_img, (0, (width / 2)), (0, (height / 2)), (min_area, max_area))
+        max_area = math.ceil((width * height) / 5)
+        min_area = math.ceil((width * height) / 100)
+        bin_img = filter_object(bin_img, (0, (width / 2)), (0, (height / 2)), (min_area, max_area))
 
-    coin_contours = filter_contours(bin_img, (min_area, max_area))
+        coin_contours = filter_contours(bin_img, (min_area, max_area))
 
-    contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    hole_contours = find_hole_contours(contours, hierarchy)
+        contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        hole_contours = find_hole_contours(contours, hierarchy)
 
-    (coins_color, hole_features, coins_area) = extract_feature(src_img, coin_contours, hole_contours)
+        (coins_color, hole_features, coins_area) = extract_feature(src_img, coin_contours, hole_contours)
 
-    coin_type = determine_coin_type(coins_color, hole_features)
+        coin_type = determine_coin_type(coins_color, hole_features)
 
-    render(dst_img, coin_contours, hole_contours, coin_type)
+        render(dst_img, coin_contours, hole_contours, coin_type)
+        cv2.imshow("a", dst_img)
+        if cv2.waitKey(10) & 0xFF == ord("q"):
+            break
 
 
 if __name__ == "__main__":
