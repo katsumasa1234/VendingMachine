@@ -140,14 +140,14 @@ def determine_coin_type(coins_color, hole_features):
 
         guess_type = 0
         if hf is True:
-            if (b_ave / r_ave) < 0.7 and (b_ave / r_ave) > 0.3:
+            if (b_ave / r_ave) < 0.8 and (b_ave / r_ave) > 0.2:
                 guess_type = 5
             else:
                 guess_type = 50
         else:
             if (b_ave / r_ave) < 0.8 and (b_ave / r_ave) > 0.2:
                 guess_type = 10
-            elif (rb_ave_diff + rg_ave_diff + gb_ave_diff) < 22:
+            elif (rb_ave_diff + rg_ave_diff + gb_ave_diff) < 18:
                 guess_type = 1
             else:
                 guess_type = 100

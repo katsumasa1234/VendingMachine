@@ -17,6 +17,21 @@ def capture_loop(price):
             change = value - price
             if (change >= 0):
                 coinOutput.OutputByValue(change)
+                buzzer.on()
+                time.sleep(0.1)
+                buzzer.off()
+                time.sleep(0.1)
+                buzzer.on()
+                time.sleep(0.1)
+                buzzer.off()
+                time.sleep(0.3)
+                buzzer.on()
+                time.sleep(0.1)
+                buzzer.off()
+                time.sleep(0.1)
+                buzzer.on()
+                time.sleep(0.1)
+                buzzer.off()
                 break
             else:
                 buzzer.on()
