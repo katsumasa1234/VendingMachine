@@ -10,7 +10,6 @@ class CoinOutput():
         pass
 
     def Output10(self, count):
-        print(count)
         for i in range(count):
             self.motor10.forward()
             sleep(0.3)
@@ -20,7 +19,6 @@ class CoinOutput():
         pass
 
     def Output1(self, count):
-        print(count)
         for i in range(count):
             self.motor1.forward()
             sleep(0.3)
@@ -40,10 +38,3 @@ class CoinOutput():
 
         thread10.join()
         thread1.join()
-
-
-
-
-
-
-CoinOutput().OutputByValue(30)

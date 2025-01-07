@@ -181,39 +181,27 @@ def parse_args() -> tuple:
     return (args.IN_IMG, args.OUT_IMG)
 
 
-def main() -> None:
-    #(in_img, out_img) = parse_args()
-    in_img = "capture.png"
-    out_img = "output.png"
-    src_img = cv2.imread(in_img)
-    if src_img is None:
+def detect_coin():
+    ret, src_img = cap.read()
+    if not ret:
         return
     height, width = src_img.shape[:2]
-    while(True):
-        ret, src_img = cap.read()
-        if not ret:
-            continue
-        dst_img = src_img.copy()
-        bin_img = binalize(src_img)
+    dst_img = src_img.copy()
+    bin_img = binalize(src_img)
 
-        max_area = math.ceil((width * height) / 5)
-        min_area = math.ceil((width * height) / 100)
-        bin_img = filter_object(bin_img, (0, (width / 2)), (0, (height / 2)), (min_area, max_area))
+    max_area = math.ceil((width * height) / 5)
+    min_area = math.ceil((width * height) / 100)
+    bin_img = filter_object(bin_img, (0, (width / 2)), (0, (height / 2)), (min_area, max_area))
 
-        coin_contours = filter_contours(bin_img, (min_area, max_area))
+    coin_contours = filter_contours(bin_img, (min_area, max_area))
 
-        contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        hole_contours = find_hole_contours(contours, hierarchy)
+    contours, hierarchy = cv2.findContours(bin_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    hole_contours = find_hole_contours(contours, hierarchy)
 
-        (coins_color, hole_features, coins_area) = extract_feature(src_img, coin_contours, hole_contours)
+    (coins_color, hole_features, coins_area) = extract_feature(src_img, coin_contours, hole_contours)
 
-        coin_type = determine_coin_type(coins_color, hole_features)
+    coin_type = determine_coin_type(coins_color, hole_features)
 
-        render(dst_img, coin_contours, hole_contours, coin_type)
-        cv2.imshow("a", dst_img)
-        if cv2.waitKey(10) & 0xFF == ord("q"):
-            break
-
-
-if __name__ == "__main__":
-    main()
+    render(dst_img, coin_contours, hole_contours, coin_type)
+    cv2.imshow("a", dst_img)
+    return coin_total(coin_type)
