@@ -8,6 +8,28 @@ button = Button(27)
 buzzer = Buzzer(22)
 coinOutput = CoinOutput()
 
+def buzzer_warning():
+    buzzer.on()
+    time.sleep(1)
+    buzzer.off()
+
+def buzzer_complete():
+    buzzer.on()
+    time.sleep(0.1)
+    buzzer.off()
+    time.sleep(0.1)
+    buzzer.on()
+    time.sleep(0.1)
+    buzzer.off()
+    time.sleep(0.3)
+    buzzer.on()
+    time.sleep(0.1)
+    buzzer.off()
+    time.sleep(0.1)
+    buzzer.on()
+    time.sleep(0.1)
+    buzzer.off()
+
 def capture_loop(price):
     while True:
         value = CoinDetect.detect_coin()
@@ -17,26 +39,10 @@ def capture_loop(price):
             change = value - price
             if (change >= 0):
                 coinOutput.OutputByValue(change)
-                buzzer.on()
-                time.sleep(0.1)
-                buzzer.off()
-                time.sleep(0.1)
-                buzzer.on()
-                time.sleep(0.1)
-                buzzer.off()
-                time.sleep(0.3)
-                buzzer.on()
-                time.sleep(0.1)
-                buzzer.off()
-                time.sleep(0.1)
-                buzzer.on()
-                time.sleep(0.1)
-                buzzer.off()
+                buzzer_complete()
                 break
             else:
-                buzzer.on()
-                time.sleep(1)
-                buzzer.off()
+                buzzer_warning()
     cv2.destroyAllWindows()
 
 while True:

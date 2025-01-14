@@ -5,9 +5,6 @@ import threading
 class CoinOutput():
     motor10 = Motor(forward=17, backward=18)
     motor1 = Motor(forward=19, backward=20)
-    
-    def __init__(self):
-        pass
 
     def Output10(self, count):
         for i in range(count):
@@ -16,7 +13,6 @@ class CoinOutput():
             self.motor10.backward()
             sleep(0.3)
         self.motor10.stop()
-        pass
 
     def Output1(self, count):
         for i in range(count):
