@@ -59,7 +59,7 @@ def find_hole_contours(contours, hierarchy):
             if info[3] == cnt_idx:
                 hole_area = cv2.contourArea(contours[hier_idx])
                 parent_area = cv2.contourArea(cnt)
-                if hole_area < (parent_area * 0.01) or hole_area > (parent_area * 0.15):
+                if hole_area < (parent_area * 0.04) or hole_area > (parent_area * 0.15):
                     continue
                 (center_x, center_y), radius = cv2.minEnclosingCircle(contours[hier_idx])
                 circle_area = int(radius * radius * np.pi)
